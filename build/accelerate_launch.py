@@ -28,9 +28,9 @@ import json
 
 # Third Party
 from accelerate.commands.launch import launch_command
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, GPTQConfig
 from peft import PeftModel
-from torch import bfloat16
+from torch import bfloat16, float16
 
 # Local
 from build.utils import (
@@ -142,11 +142,28 @@ def main():
 
         if os.path.exists(adapter_config_path):
             base_model_path = get_base_model_from_adapter_config(adapter_config_path)
-            base_model = AutoModelForCausalLM.from_pretrained(
-                base_model_path,
-                attn_implementation="flash_attention_2" if use_flash_attn else None,
-                torch_dtype=bfloat16 if use_flash_attn else None,
+
+            is_quantized = os.path.exists(
+                os.path.join(base_model_path, "quantize_config.json")
             )
+            if is_quantized:
+                print("ANGEL QLORA DEBUG: this model is quantized")
+
+                gptq_config = GPTQConfig(bits=4, exllama_config={"version": 2})
+                base_model = AutoModelForCausalLM.from_pretrained(
+                    base_model_path,
+                    attn_implementation="flash_attention_2" if use_flash_attn else None,
+                    device_map="auto",
+                    torch_dtype=float16 if use_flash_attn else None,
+                    quantization_config=gptq_config,
+                )
+            else:
+                print("ANGEL QLORA DEBUG: this model is NOT quantized")
+                base_model = AutoModelForCausalLM.from_pretrained(
+                    base_model_path,
+                    attn_implementation="flash_attention_2" if use_flash_attn else None,
+                    torch_dtype=bfloat16 if use_flash_attn else None,
+                )
 
             # since the peft library (PEFTModelForCausalLM) does not handle cases
             # where the model's layers are modified, in our case the embedding layer
