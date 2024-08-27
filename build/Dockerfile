@@ -107,7 +107,7 @@ ARG USER_UID
 
 ## Enable Aimstack if requested via ENABLE_AIM set to "true"
 ARG ENABLE_AIM=false
-ARG ENABLE_GPTQ=false
+ARG ENABLE_GPTQ=true
 
 RUN dnf install -y git && \
     # perl-Net-SSLeay.x86_64 and server_key.pem are installed with git as dependencies
