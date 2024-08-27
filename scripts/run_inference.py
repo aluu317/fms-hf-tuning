@@ -30,7 +30,8 @@ import os
 # Third Party
 from peft import PeftModel
 from tqdm import tqdm
-from transformers import AutoModelForCausalLM, AutoTokenizer, GPTQConfig
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers.utils.import_utils import _is_package_available
 import torch
 
 # Local
@@ -189,16 +190,33 @@ class TunedCausalLM:
                         os.path.join(base_model_name_or_path, "quantize_config.json")
                     )
                     if is_quantized:
-                        gptq_config = GPTQConfig(bits=4, exllama_config={"version": 2})
-                        base_model = AutoModelForCausalLM.from_pretrained(
-                            base_model_name_or_path,
-                            attn_implementation="flash_attention_2"
-                            if use_flash_attn
-                            else None,
-                            device_map="auto",
-                            torch_dtype=torch.float16 if use_flash_attn else None,
-                            quantization_config=gptq_config,
-                        )
+
+                        def is_auto_gptq_available():
+                            package_names = ["auto_gptq", "optimum"]
+                            for n in package_names:
+                                if not _is_package_available(n):
+                                    return False
+                            return True
+
+                        # pylint: disable=import-error
+                        # pylint: disable=import-outside-toplevel
+                        if is_auto_gptq_available():
+                            # Third Party
+                            from auto_gptq import AutoGPTQForCausalLM
+
+                            base_model = AutoGPTQForCausalLM.from_quantized(
+                                base_model_name_or_path, device="cuda:0"
+                            )
+                            # gptq_config = GPTQConfig(bits=4, exllama_config={"version": 2})
+                            # base_model = AutoModelForCausalLM.from_pretrained(
+                            #     base_model_name_or_path,
+                            #     attn_implementation="flash_attention_2"
+                            #     if use_flash_attn
+                            #     else None,
+                            #     device_map="cuda",
+                            #     torch_dtype=torch.float16 if use_flash_attn else None,
+                            #     quantization_config=gptq_config,
+                            # )
                     else:
                         base_model = AutoModelForCausalLM.from_pretrained(
                             base_model_name_or_path,
