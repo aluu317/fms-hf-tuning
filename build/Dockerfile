@@ -138,10 +138,7 @@ RUN --mount=type=cache,target=/home/${USER}/.cache/pip,uid=${USER_UID} \
         python -m pip install --user "$(head bdist_name)[aim]"; \
     fi && \
     if [[ "${ENABLE_GPTQ}" == "true" ]]; then \
-        git clone https://github.com/PanQiWei/AutoGPTQ.git && cd AutoGPTQ; \
-        python -m pip install numpy gekko pandas; \
-        python -m pip pip install -vvv --no-build-isolation -e .; \
-        python -m pip install --user "$(head bdist_name)[auto-gptq]"; \
+        python -m pip install --user "$(head bdist_name)[gptq]"; \
     fi && \
     # Clean up the wheel module. It's only needed by flash-attn install
     python -m pip uninstall wheel build -y && \
