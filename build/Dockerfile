@@ -170,6 +170,11 @@ COPY build/accelerate_launch.py fixtures/accelerate_fsdp_defaults.yaml /app/
 COPY build/utils.py /app/build/
 RUN chmod +x /app/accelerate_launch.py
 
+COPY scripts/run_evaluation.py /app/run_evaluation.py
+COPY scripts/run_inference.py /app/run_inference.py
+RUN chmod +x /app/run_evaluation.py
+RUN chmod +x /app/run_inference.py
+
 ENV FSDP_DEFAULTS_FILE_PATH="/app/accelerate_fsdp_defaults.yaml"
 ENV SET_NUM_PROCESSES_TO_NUM_GPUS="True"
 
@@ -178,4 +183,4 @@ USER ${USER}
 COPY --from=python-installations /home/${USER}/.local /home/${USER}/.local
 ENV PYTHONPATH="/home/${USER}/.local/lib/python${PYTHON_VERSION}/site-packages"
 
-CMD [ "python", "/app/accelerate_launch.py" ]
+CMD [ "python", "/app/run_evaluation.py", "--model /testing/tuning/output/granite-34b/qlora/cc_tone-20240829140059-qlora-cfc-cattn-cproj/checkpoint-1260/ --data_path /testing/tuning/input/cc_tone_500_test.json --delimiter , --base_model_name_or_path /testing/models/granite-34b-gptq/ --max_new_tokens 100 --output_dir eval_results --eos_token '<|endoftext|>'" ]
