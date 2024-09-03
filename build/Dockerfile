@@ -184,4 +184,4 @@ USER ${USER}
 COPY --from=python-installations /home/${USER}/.local /home/${USER}/.local
 ENV PYTHONPATH="/home/${USER}/.local/lib/python${PYTHON_VERSION}/site-packages"
 
-CMD [ "python", "/app/run_evaluation.py", "--model /testing/tuning/output/granite-34b/qlora/cc_tone-20240829140059-qlora-cfc-cattn-cproj/checkpoint-1260/ --data_path /testing/tuning/input/cc_tone_500_test.json --delimiter , --base_model_name_or_path /testing/models/granite-34b-gptq/ --max_new_tokens 100 --output_dir eval_results --eos_token '<|endoftext|>'" ]
+CMD [ "python", "/app/run_evaluation.py", "--model", "/testing/tuning/output/granite-34b/qlora/cc_tone-20240829140059-qlora-cfc-cattn-cproj/checkpoint-1260/", "--data_path", "/testing/tuning/cc_tone_500_test.json", "--delimiter", ",", "--base_model_name_or_path", "/testing/models/granite-34b-gptq/", "--max_new_tokens", "100", "--output_dir", "eval_results", "--eos_token", "'<|endoftext|>'" ]
